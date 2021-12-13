@@ -55,14 +55,14 @@ object Environment {
      * @return the new size of the spots.
      *
      */
-    fun addSpot(spot: Spot): MutableList<Spot> {
+    private fun addSpot(spot: Spot): MutableList<Spot> {
         spots.add(spot)
         return spots
     }
 
     /**
      *
-     * Adds an array af [Spot] to the collection of spots in the environment.
+     * Loops through the given array af [Spot] and calls the [addSpot] method to add the spots to the collection
      *
      */
     fun addSpots(spots: Array<Spot>) {
@@ -77,8 +77,19 @@ object Environment {
      * @return the new size of the evtols.
      *
      */
-    fun addEVtols(evtol: EVtol): MutableList<EVtol> {
+    private fun addEVtol(evtol: EVtol): MutableList<EVtol> {
         evtols.add(evtol)
         return evtols
+    }
+
+    /**
+     *
+     * Loops through the given array af [EVtol] and calls the [addEVtol] method to add the evtols to the collection
+     *
+     */
+    fun addEVtols(evtols: Array<EVtol>) {
+        for (evtol in evtols) {
+            addEVtol(evtol)
+        }
     }
 }
