@@ -9,6 +9,8 @@ object Environment {
 
     val evtols: MutableList<EVtol> = mutableListOf()
 
+    var matrix: Array<IntArray>? = null
+
     fun getDistanceBetweenSpotsInKm(fromSpot: Spot, toSpot: Spot): Double? {
 
         val distanceInKm = fromSpot.position.get(Constants.LATITUDE)
@@ -46,6 +48,43 @@ object Environment {
 
     // TODO
     fun adjustWindConditions() {
+
+    }
+
+    /**
+     * Creates a matrix with destinations for each spot
+     * The row is the "from" destination of a passenger and the column is the "to" destination of a passenger
+     *
+     * The indexes in the matrix represent the spot positions
+     * The matrix represents following construct:
+     *
+     *                'San Francisco' 'Cupertino' 'Palo Alto'
+     * 'San Francisco'   0              1           3
+     * 'Cupertino'       2              0           1
+     * 'Palo Alto'       5              2           0
+     *
+     * The example shows that there are 3 passengers from San Francisco to Palo Alto.
+     *
+     */
+    fun createDestinationMatrix() {
+        val matrixSize = spots.size
+        this.matrix = Array(matrixSize) { IntArray(matrixSize) }
+        for (row in 0..matrix!!.size - 1) {
+            for (column in 0..matrix!!.size - 1) {
+                matrix!![row][column] = 0
+            }
+        }
+    }
+
+    /**
+     * Adds to the count of the destinations in the matrix
+     */
+    fun addPassengerToDestinationMatrix(pickUpSpot: Spot, destinationSpot: Spot) {
+
+        var fromPostion = spots.indexOf(pickUpSpot)
+        var toPosition = spots.indexOf(destinationSpot)
+
+        matrix!![fromPostion][toPosition] = matrix!![fromPostion][toPosition] + 1
 
     }
 
@@ -90,6 +129,34 @@ object Environment {
     fun addEVtols(evtols: Array<EVtol>) {
         for (evtol in evtols) {
             addEVtol(evtol)
+        }
+    }
+
+    fun getNextPossibleSpotForPassenger(passenger: Passenger) {
+        val destinationInKm = getDistanceBetweenSpotsInKm(passenger.pickUpSpot!!, passenger.destinationSpot)
+        var closestSpotToCurrentDestination: Spot? = null
+
+        if (destinationInKm != null) {
+            while (destinationInKm >= Constants.MAX_RANGE) {
+
+                val postionOfCurrentDestination = Environment.spots.indexOf(passenger.destinationSpot)
+                if (postionOfCurrentDestination == 0) {
+                    closestSpotToCurrentDestination = spots.get(postionOfCurrentDestination + 1)
+                }
+                if (postionOfCurrentDestination == spots.size - 1) {
+                    closestSpotToCurrentDestination = spots.get(postionOfCurrentDestination - 1)
+                } else {
+                    var distanceFirstNeighbor = getDistanceBetweenSpotsInKm(
+                        spots.get(postionOfCurrentDestination - 1),
+                        passenger.destinationSpot
+                    )
+                    var distanceSecondNeighbor = getDistanceBetweenSpotsInKm(
+                        spots.get(postionOfCurrentDestination - 1),
+                        passenger.destinationSpot
+                    )
+
+                }
+            }
         }
     }
 }

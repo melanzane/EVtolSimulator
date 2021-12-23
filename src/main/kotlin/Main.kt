@@ -56,15 +56,63 @@ public class Main {
             // San Francisco, Redwood City, East Palo Alto, Palo Alto, Cupertino, San Jose
             Environment.addSpots(arrayOf(sanFrancisco, redwoodCity, eastPaloAlto, cupertino, sanJose, paloAlto))
 
+            //create a matrix with destinations for the passengers
+            Environment.createDestinationMatrix()
+
+
             //Add eVtols to the environment
             Environment.addEVtols(arrayOf(eVtol1, eVtol2, eVtol3))
 
+            // generate random passengers and add them to spot
             val numberOfPassengers = 20
             generateRandomPassengers(numberOfPassengers)
 
             addPassengersToSpot(numberOfPassengers)
 
+            // add eVtols to random spots
+            updateeVtolsWithSpots(arrayOf(eVtol1, eVtol2, eVtol3))
 
+            // play the simulation by picking up the passengers at the spots and flying them
+            // to their destinations
+            playSimulation()
+
+        }
+
+        private fun playSimulation() {
+            for (spot in Environment.spots) {
+                println(spot.passengers.size)
+                if (!spot.passengers.isEmpty()) {
+                    for (passenger in spot.passengers) {
+                        var distanceToTravel =
+                            Environment.getDistanceBetweenSpotsInKm(passenger.pickUpSpot!!, passenger.destinationSpot)
+                        if ((distanceToTravel != null) && (distanceToTravel <= Constants.MAX_RANGE)) {
+                            Environment.addPassengerToDestinationMatrix(
+                                passenger.pickUpSpot!!,
+                                passenger.destinationSpot
+                            )
+                            passenger.pickUpSpot = null
+                        } else {
+                            Environment.getNextPossibleSpotForPassenger(passenger)
+                        }
+                        spot.passengers.remove(passenger)
+                    }
+
+                }
+            }
+
+        }
+
+
+        private fun updateeVtolsWithSpots(evtols: Array<EVtol>) {
+            for (evtol in evtols) {
+                val spot = Random.nextInt(Environment.spots.size)
+                Environment.spots[spot].position.get(Constants.LONGITUDE)
+                    ?.let {
+                        Environment.spots[spot].position.get(Constants.LATITUDE)
+                            ?.let { it1 -> evtol.updatePosition(it, it1) }
+                    }
+                Environment.spots[spot].setEvtol(evtol)
+            }
         }
 
         private fun addPassengersToSpot(numberOfPassengers: Int) {

@@ -1,4 +1,3 @@
-
 class EVtol(var identifier: Int) {
     private val position = mutableMapOf(Constants.LATITUDE to 0.00, Constants.LONGITUDE to 0.00)
     var passengers = arrayOfNulls<Passenger>(Constants.MAX_PASSENGERS_PER_EVTOL)
@@ -17,6 +16,10 @@ class EVtol(var identifier: Int) {
         position.put(Constants.LATITUDE, latitude)
         position.put(Constants.LONGITUDE, longitude)
         return position
+    }
+
+    fun getCurrentPosition(): Map<String, Double> {
+        return this.position
     }
 
     fun updatePassengers(passengers: Array<Passenger>): Array<Passenger> {

@@ -4,7 +4,7 @@
  * Every passenger has a pick up destination and a target destination.
  * The destinations are mappen by the [Spot] class
  */
-class Passenger(var name: String, var pickUpSpot: Spot, var destinationSpot: Spot) {
+class Passenger(var name: String, var pickUpSpot: Spot?, var destinationSpot: Spot) {
 
     private val position = mutableMapOf(Constants.LATITUDE to 0.00, Constants.LONGITUDE to 0.00)
 
@@ -18,7 +18,8 @@ class Passenger(var name: String, var pickUpSpot: Spot, var destinationSpot: Spo
         position.put(Constants.LATITUDE, latitude)
         position.put(Constants.LONGITUDE, longitude)
         return position
-    }}
+    }
+}
 
 
 
