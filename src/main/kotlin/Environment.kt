@@ -5,18 +5,27 @@
  */
 object Environment {
 
-    val spots: MutableList<Spot> = mutableListOf()
+    var spots: MutableList<Spot> = mutableListOf()
 
     val evtols: MutableList<EVtol> = mutableListOf()
 
-    var matrix: Array<IntArray>? = null
+    var distanceMatrix: Array<DoubleArray>? = null
 
+    var destinationMatrix: Array<IntArray>? = null
+
+
+    /**
+     * Takes two [Spot]s as arguments and gets their positions variables.
+     * Calls the private [distanceBetweenLocationsInKm] method which calculates the distance
+     *
+     * @return distance in kilometers
+     */
     fun getDistanceBetweenSpotsInKm(fromSpot: Spot, toSpot: Spot): Double? {
 
         val distanceInKm = fromSpot.position.get(Constants.LATITUDE)
             ?.let {
                 toSpot.position.get(Constants.LATITUDE)?.let { it1 ->
-                    distanceInKm(
+                    distanceBetweenLocationsInKm(
                         it, fromSpot.position.get(Constants.LONGITUDE)!!,
                         it1, toSpot.position.get(Constants.LONGITUDE)!!
                     )
@@ -25,17 +34,22 @@ object Environment {
         return distanceInKm
     }
 
-    private fun distanceInKm(lat1: Double, lon1: Double, lat2: Double, lon2: Double): Double {
+    /**
+     * Takes the latitude and longitude of two locations as parameter and calculates the distance in kilometers
+     *
+     * @return distance in kilometers
+     */
+    private fun distanceBetweenLocationsInKm(lat1: Double, lon1: Double, lat2: Double, lon2: Double): Double {
         val theta = lon1 - lon2
-        var dist =
+        var distance =
             Math.sin(deg2rad(lat1)) * Math.sin(deg2rad(lat2)) + Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * Math.cos(
                 deg2rad(theta)
             )
-        dist = Math.acos(dist)
-        dist = rad2deg(dist)
-        dist *= 60 * 1.1515
-        dist *= 1.609344
-        return dist
+        distance = Math.acos(distance)
+        distance = rad2deg(distance)
+        distance *= Constants.NUMBER_OF_MINUES_IN_A_DEGREE * Constants.STATUTE_MILES_IN_A_NAUTICAL_MILE
+        distance *= Constants.ONE_MILE_IN_KM
+        return distance
     }
 
     private fun deg2rad(deg: Double): Double {
@@ -51,9 +65,24 @@ object Environment {
 
     }
 
+
+    fun createDistanceMatrix() {
+        this.distanceMatrix = Array(spots.size) { DoubleArray(spots.size) }
+        for (row in 0..spots.size - 1) {
+            for (column in 0..spots.size - 1) {
+                var distanceBetweenDestinations = getDistanceBetweenSpotsInKm(spots.get(row), spots.get(column))!!
+                if ((distanceBetweenDestinations <= Constants.MAX_RANGE) && (distanceBetweenDestinations > 0)) {
+                    distanceMatrix!![row][column] = distanceBetweenDestinations
+                } else {
+                    distanceMatrix!![row][column] = -1.00
+                }
+            }
+        }
+    }
+
     /**
-     * Creates a matrix with destinations for each spot
-     * The row is the "from" destination of a passenger and the column is the "to" destination of a passenger
+     * Creates a matrix with all spots
+     * The row is the "from" spot of a passenger and the column is the "to" spot of a passenger
      *
      * The indexes in the matrix represent the spot positions
      * The matrix represents following construct:
@@ -66,25 +95,14 @@ object Environment {
      * The example shows that there are 3 passengers from San Francisco to Palo Alto.
      *
      */
-    fun createDestinationMatrix() {
-        val matrixSize = spots.size
-        this.matrix = Array(matrixSize) { IntArray(matrixSize) }
-        for (row in 0..matrix!!.size - 1) {
-            for (column in 0..matrix!!.size - 1) {
-                matrix!![row][column] = 0
-            }
-        }
-    }
-
-    /**
-     * Adds to the count of the destinations in the matrix
-     */
     fun addPassengerToDestinationMatrix(pickUpSpot: Spot, destinationSpot: Spot) {
+
+        this.destinationMatrix = Array(spots.size) { IntArray(spots.size) }
 
         var fromPostion = spots.indexOf(pickUpSpot)
         var toPosition = spots.indexOf(destinationSpot)
 
-        matrix!![fromPostion][toPosition] = matrix!![fromPostion][toPosition] + 1
+        destinationMatrix!![fromPostion][toPosition] = destinationMatrix!![fromPostion][toPosition] + 1
 
     }
 
@@ -132,31 +150,60 @@ object Environment {
         }
     }
 
-    fun getNextPossibleSpotForPassenger(passenger: Passenger) {
-        val destinationInKm = getDistanceBetweenSpotsInKm(passenger.pickUpSpot!!, passenger.destinationSpot)
-        var closestSpotToCurrentDestination: Spot? = null
+    fun getNextPossibleSpotForPassenger(passenger: Passenger): HashMap<Spot, Spot> {
+        var fromPostion = spots.indexOf(passenger.pickUpSpot)
+        var destinationsMap: HashMap<Spot, Spot> = HashMap()
 
-        if (destinationInKm != null) {
-            while (destinationInKm >= Constants.MAX_RANGE) {
+        distanceMatrix?.let {
+            destinationsMap = dijkstra(fromPostion, distanceMatrix!!, spots.size)
+        }
 
-                val postionOfCurrentDestination = Environment.spots.indexOf(passenger.destinationSpot)
-                if (postionOfCurrentDestination == 0) {
-                    closestSpotToCurrentDestination = spots.get(postionOfCurrentDestination + 1)
-                }
-                if (postionOfCurrentDestination == spots.size - 1) {
-                    closestSpotToCurrentDestination = spots.get(postionOfCurrentDestination - 1)
-                } else {
-                    var distanceFirstNeighbor = getDistanceBetweenSpotsInKm(
-                        spots.get(postionOfCurrentDestination - 1),
-                        passenger.destinationSpot
-                    )
-                    var distanceSecondNeighbor = getDistanceBetweenSpotsInKm(
-                        spots.get(postionOfCurrentDestination - 1),
-                        passenger.destinationSpot
-                    )
+        println("Passenger travels from: " + passenger.pickUpSpot!!.name + " to: " + passenger.destinationSpot.name + " through: ")
+        for ((key, value) in destinationsMap) {
+            println("${key.name} = ${value.name}")
+        }
+        return destinationsMap
+    }
 
+    private fun dijkstra(source: Int, edges: Array<DoubleArray>, nodes: Int): HashMap<Spot, Spot> {
+        // Initialize single source
+        val d = DoubleArray(nodes) { Double.MAX_VALUE }
+        val pi = IntArray(nodes) { -1 }
+        d[source] = 0.0
+
+        val Q: MutableList<Int> = (0 until nodes).toMutableList()
+        val destinationsMap: HashMap<Spot, Spot> = HashMap()
+
+        // Iterations
+        while (Q.isNotEmpty()) {
+            val u: Int = extractMin(Q, d)
+
+            edges[u].forEachIndexed { v, vd ->
+                if (vd != -1.0 && d[v] > d[u] + vd) {
+                    d[v] = d[u] + vd
+                    pi[v] = u
+                    destinationsMap.put(spots.get(v), spots.get(u))
                 }
             }
         }
+
+        println("d: ${d.contentToString()}")
+        return destinationsMap
+    }
+
+
+    private fun extractMin(Q: MutableList<Int>, d: DoubleArray): Int {
+        var minNode = Q[0]
+        var minDistance: Double = d[0]
+
+        Q.forEach {
+            if (d[it] < minDistance) {
+                minNode = it
+                minDistance = d[it]
+            }
+        }
+
+        Q.remove(minNode)
+        return minNode
     }
 }

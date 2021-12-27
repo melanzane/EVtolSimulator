@@ -27,7 +27,7 @@ public class Main {
             val paloAlto = Spot(
                 "Palo Alto",
                 Charger.SUPERCHARGER,
-                mutableMapOf("latitude" to 37.4256293, "longitude" to -122.2053904)
+                mutableMapOf("latitude" to 37.4249706, "longitude" to -122.1878931)
             )
 
             val eastPaloAlto = Spot(
@@ -42,6 +42,24 @@ public class Main {
                 mutableMapOf("latitude" to 37.3092448, "longitude" to -122.078664)
             )
 
+            val southSanJose = Spot(
+                "South San Jose",
+                Charger.SUPERCHARGER,
+                mutableMapOf("latitude" to 37.264833, "longitude" to -121.8894972)
+            )
+
+            val morganHill = Spot(
+                "Morgan Hill",
+                Charger.SUPERCHARGER,
+                mutableMapOf("latitude" to 37.1290233, "longitude" to -121.6543579)
+            )
+
+            val sanMartin = Spot(
+                "San Martin",
+                Charger.SUPERCHARGER,
+                mutableMapOf("latitude" to 37.0926408, "longitude" to -121.6244688)
+            )
+
 
             //create EVtols
             val eVtol1 = EVtol(1)
@@ -54,10 +72,22 @@ public class Main {
             //create the environment
             // Add all the spots to the environment
             // San Francisco, Redwood City, East Palo Alto, Palo Alto, Cupertino, San Jose
-            Environment.addSpots(arrayOf(sanFrancisco, redwoodCity, eastPaloAlto, cupertino, sanJose, paloAlto))
+            Environment.addSpots(
+                arrayOf(
+                    sanFrancisco,
+                    redwoodCity,
+                    eastPaloAlto,
+                    cupertino,
+                    sanJose,
+                    paloAlto,
+                    southSanJose,
+                    morganHill,
+                    sanMartin
+                )
+            )
 
             //create a matrix with destinations for the passengers
-            Environment.createDestinationMatrix()
+            Environment.createDistanceMatrix()
 
 
             //Add eVtols to the environment
@@ -80,7 +110,6 @@ public class Main {
 
         private fun playSimulation() {
             for (spot in Environment.spots) {
-                println(spot.passengers.size)
                 if (!spot.passengers.isEmpty()) {
                     for (passenger in spot.passengers) {
                         var distanceToTravel =
@@ -92,11 +121,11 @@ public class Main {
                             )
                             passenger.pickUpSpot = null
                         } else {
-                            Environment.getNextPossibleSpotForPassenger(passenger)
+                            var destinationMap = Environment.getNextPossibleSpotForPassenger(passenger)
+                            passenger.updateDestinationMap(destinationMap)
                         }
-                        spot.passengers.remove(passenger)
                     }
-
+                    spot.passengers.clear()
                 }
             }
 
