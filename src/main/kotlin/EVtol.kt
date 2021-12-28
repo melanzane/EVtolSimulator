@@ -13,22 +13,26 @@ class EVtol(var identifier: Int) {
      * @return the current position.
      */
     fun updatePosition(longitude: Double, latitude: Double): Map<String, Double> {
-        position.put(Constants.LATITUDE, latitude)
-        position.put(Constants.LONGITUDE, longitude)
+        if (isValidLatitudeAndLongitude(longitude, latitude)) {
+            position.put(Constants.LATITUDE, latitude)
+            position.put(Constants.LONGITUDE, longitude)
+        }
         return position
+    }
+
+    private fun isValidLatitudeAndLongitude(longitude: Double?, latitude: Double?): Boolean {
+        return latitude?.toInt() in -90 until 90 && longitude?.toInt() in -180 until 180
     }
 
     fun getCurrentPosition(): Map<String, Double> {
         return this.position
     }
 
-    fun updatePassengers(passengers: Array<Passenger>): Array<Passenger> {
-        var index = 0
-        for (passenger in passengers) {
-            this.passengers[index] = passenger
-            index = +1
+    fun updatePassengers(passengers: Array<Passenger>): Array<Passenger?> {
+        for (i in 0..Constants.MAX_PASSENGERS_PER_EVTOL - 1) {
+            this.passengers[i] = passengers.get(i)
         }
-        return passengers
+        return this.passengers
     }
 
     fun updateBatteryCapacity(capacity: Int): Int {

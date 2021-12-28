@@ -1,4 +1,3 @@
-import kotlin.math.E
 import kotlin.random.Random
 
 public class Main {

@@ -166,6 +166,10 @@ object Environment {
             destinationsMap = dijkstra(fromPostion, distanceMatrix!!, spots.size)
         }
 
+        println("Passenger travels from: " + passenger.pickUpSpot!!.name + " to: " + passenger.destinationSpot.name + " through: ")
+        for ((key, value) in destinationsMap) {
+            println("${key.name} = ${value.name}")
+        }
         return destinationsMap
     }
 
@@ -174,12 +178,12 @@ object Environment {
         val distances = DoubleArray(nodes) { Double.MAX_VALUE }
         distances[source] = 0.0
 
-        val Q: MutableList<Int> = (0 until nodes).toMutableList()
+        val nodesToVisit: MutableList<Int> = (0 until nodes).toMutableList()
         val destinationsMap: HashMap<Spot, Spot> = HashMap()
 
         // Iterations
-        while (Q.isNotEmpty()) {
-            val u: Int = extractMin(Q, distances)
+        while (nodesToVisit.isNotEmpty()) {
+            val u: Int = extractMin(nodesToVisit, distances)
 
             edges[u].forEachIndexed { v, vd ->
                 if (vd != -1.0 && distances[v] > distances[u] + vd) {
@@ -194,18 +198,18 @@ object Environment {
     }
 
 
-    private fun extractMin(Q: MutableList<Int>, d: DoubleArray): Int {
-        var minNode = Q[0]
+    private fun extractMin(nodesToVisit: MutableList<Int>, d: DoubleArray): Int {
+        var minNode = nodesToVisit[0]
         var minDistance: Double = d[0]
 
-        Q.forEach {
+        nodesToVisit.forEach {
             if (d[it] < minDistance) {
                 minNode = it
                 minDistance = d[it]
             }
         }
 
-        Q.remove(minNode)
+        nodesToVisit.remove(minNode)
         return minNode
     }
 

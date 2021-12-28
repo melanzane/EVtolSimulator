@@ -12,5 +12,4 @@ object Constants {
     const val NUMBER_OF_MINUES_IN_A_DEGREE = 60
     const val STATUTE_MILES_IN_A_NAUTICAL_MILE = 1.1515
 
-
 }
