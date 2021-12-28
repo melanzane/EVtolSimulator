@@ -80,6 +80,16 @@ object Environment {
         }
     }
 
+    fun createDestinationMatrix() {
+        this.destinationMatrix = Array(spots.size) { IntArray(spots.size) }
+
+        for (row in 0..spots.size - 1) {
+            for (column in 0..spots.size - 1) {
+                destinationMatrix!![row][column] = 0
+            }
+        }
+    }
+
     /**
      * Creates a matrix with all spots
      * The row is the "from" spot of a passenger and the column is the "to" spot of a passenger
@@ -96,8 +106,6 @@ object Environment {
      *
      */
     fun addPassengerToDestinationMatrix(pickUpSpot: Spot, destinationSpot: Spot) {
-
-        this.destinationMatrix = Array(spots.size) { IntArray(spots.size) }
 
         var fromPostion = spots.indexOf(pickUpSpot)
         var toPosition = spots.indexOf(destinationSpot)
@@ -150,7 +158,7 @@ object Environment {
         }
     }
 
-    fun getNextPossibleSpotForPassenger(passenger: Passenger): HashMap<Spot, Spot> {
+    fun getSpotGraphForPassenger(passenger: Passenger): HashMap<Spot, Spot> {
         var fromPostion = spots.indexOf(passenger.pickUpSpot)
         var destinationsMap: HashMap<Spot, Spot> = HashMap()
 
@@ -158,36 +166,30 @@ object Environment {
             destinationsMap = dijkstra(fromPostion, distanceMatrix!!, spots.size)
         }
 
-        println("Passenger travels from: " + passenger.pickUpSpot!!.name + " to: " + passenger.destinationSpot.name + " through: ")
-        for ((key, value) in destinationsMap) {
-            println("${key.name} = ${value.name}")
-        }
         return destinationsMap
     }
 
     private fun dijkstra(source: Int, edges: Array<DoubleArray>, nodes: Int): HashMap<Spot, Spot> {
         // Initialize single source
-        val d = DoubleArray(nodes) { Double.MAX_VALUE }
-        val pi = IntArray(nodes) { -1 }
-        d[source] = 0.0
+        val distances = DoubleArray(nodes) { Double.MAX_VALUE }
+        distances[source] = 0.0
 
         val Q: MutableList<Int> = (0 until nodes).toMutableList()
         val destinationsMap: HashMap<Spot, Spot> = HashMap()
 
         // Iterations
         while (Q.isNotEmpty()) {
-            val u: Int = extractMin(Q, d)
+            val u: Int = extractMin(Q, distances)
 
             edges[u].forEachIndexed { v, vd ->
-                if (vd != -1.0 && d[v] > d[u] + vd) {
-                    d[v] = d[u] + vd
-                    pi[v] = u
+                if (vd != -1.0 && distances[v] > distances[u] + vd) {
+                    distances[v] = distances[u] + vd
                     destinationsMap.put(spots.get(v), spots.get(u))
                 }
             }
         }
 
-        println("d: ${d.contentToString()}")
+        println("d: ${distances.contentToString()}")
         return destinationsMap
     }
 
@@ -205,5 +207,15 @@ object Environment {
 
         Q.remove(minNode)
         return minNode
+    }
+
+    fun getNextSpotForPassenger(
+        destinationMap: HashMap<Spot, Spot>,
+        pickUpSpot: Spot,
+        destinationSpot: Spot
+    ): Spot? {
+        return if (destinationMap.get(destinationSpot)!!.equals(pickUpSpot)) {
+            destinationSpot
+        } else destinationMap.get(destinationSpot)?.let { getNextSpotForPassenger(destinationMap, pickUpSpot, it) }
     }
 }

@@ -1,3 +1,4 @@
+import kotlin.math.E
 import kotlin.random.Random
 
 public class Main {
@@ -86,8 +87,11 @@ public class Main {
                 )
             )
 
-            //create a matrix with destinations for the passengers
+            //create a matrix with distances from and to all spots
             Environment.createDistanceMatrix()
+
+            //create a matrix with destinations for the passengers
+            Environment.createDestinationMatrix()
 
 
             //Add eVtols to the environment
@@ -116,13 +120,20 @@ public class Main {
                             Environment.getDistanceBetweenSpotsInKm(passenger.pickUpSpot!!, passenger.destinationSpot)
                         if ((distanceToTravel != null) && (distanceToTravel <= Constants.MAX_RANGE)) {
                             Environment.addPassengerToDestinationMatrix(
-                                passenger.pickUpSpot!!,
+                                spot,
                                 passenger.destinationSpot
                             )
                             passenger.pickUpSpot = null
                         } else {
-                            var destinationMap = Environment.getNextPossibleSpotForPassenger(passenger)
+                            var destinationMap = Environment.getSpotGraphForPassenger(passenger)
                             passenger.updateDestinationMap(destinationMap)
+                            var nextSpot =
+                                Environment.getNextSpotForPassenger(destinationMap, spot, passenger.destinationSpot)
+                            if (nextSpot != null) {
+                                Environment.addPassengerToDestinationMatrix(spot, nextSpot)
+                                passenger.pickUpSpot = nextSpot
+
+                            }
                         }
                     }
                     spot.passengers.clear()
