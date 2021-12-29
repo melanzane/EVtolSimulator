@@ -100,8 +100,6 @@ public class Main {
             val numberOfPassengers = 20
             generateRandomPassengers(numberOfPassengers)
 
-            addPassengersToSpot(numberOfPassengers)
-
             // add eVtols to random spots
             updateeVtolsWithSpots(arrayOf(eVtol1, eVtol2, eVtol3))
 
@@ -112,33 +110,67 @@ public class Main {
         }
 
         private fun playSimulation() {
-            for (spot in Environment.spots) {
-                if (!spot.passengers.isEmpty()) {
-                    for (passenger in spot.passengers) {
-                        var distanceToTravel =
-                            Environment.getDistanceBetweenSpotsInKm(passenger.pickUpSpot!!, passenger.destinationSpot)
-                        if ((distanceToTravel != null) && (distanceToTravel <= Constants.MAX_RANGE)) {
-                            Environment.addPassengerToDestinationMatrix(
-                                spot,
-                                passenger.destinationSpot
-                            )
-                            passenger.pickUpSpot = null
-                        } else {
-                            var destinationMap = Environment.getSpotGraphForPassenger(passenger)
-                            passenger.updateDestinationMap(destinationMap)
-                            var nextSpot =
-                                Environment.getNextSpotForPassenger(destinationMap, spot, passenger.destinationSpot)
-                            if (nextSpot != null) {
-                                Environment.addPassengerToDestinationMatrix(spot, nextSpot)
-                                passenger.pickUpSpot = nextSpot
 
-                            }
-                        }
+            for (passenger in Environment.passengers) {
+                var distanceToTravel =
+                    Environment.getDistanceBetweenSpotsInKm(passenger.pickUpSpot!!, passenger.destinationSpot)
+                if ((distanceToTravel != null) && (distanceToTravel <= Constants.MAX_RANGE)) {
+                    Environment.addPassengerToDestinationMatrix(
+                        passenger.pickUpSpot!!,
+                        passenger.destinationSpot
+                    )
+                    passenger.pickUpSpot = null
+                } else {
+                    var destinationMap = Environment.getSpotGraphForPassenger(passenger)
+                    passenger.updateDestinationMap(destinationMap)
+                    var nextSpot =
+                        Environment.getNextSpotForPassenger(
+                            destinationMap,
+                            passenger.pickUpSpot!!,
+                            passenger.destinationSpot
+                        )
+                    if (nextSpot != null) {
+                        Environment.addPassengerToDestinationMatrix(passenger.pickUpSpot!!, nextSpot)
+                        passenger.pickUpSpot = nextSpot
+
                     }
-                    spot.passengers.clear()
                 }
             }
 
+            for (spot in Environment.spots) {
+                var index = Environment.spots.indexOf(spot)
+                if (spot.getEvtol() != null) {
+                    if (Environment.destinationMatrix?.get(index)?.any { Int -> Int >= 2 } == true) {
+                        flyEvtolToNextSpot(index)
+                    }
+                }
+            }
+
+            println(Environment.passengers.size)
+            Environment.passengers.removeIf { x -> x.pickUpSpot == null }
+            println(Environment.passengers.size)
+
+            println("   -----|-----")
+            println("*>=====[_]L)")
+            println("      -'-`-")
+            println("")
+            println("        -----|-----")
+            println("     *>=====[_]L)")
+            println("           -'-`-")
+        }
+
+        private fun flyEvtolToNextSpot(index: Int) {
+            var spot = Environment.spots.get(index)
+            var eVtol = spot.getEvtol()
+
+            var possibleDestinationsList =
+                Environment.destinationMatrix!!.get(index).filter { Int -> Int >= 2 }
+            if (possibleDestinationsList.size > 1) {
+                //TODO
+            } else {
+                //TODO
+
+            }
         }
 
 
@@ -154,27 +186,12 @@ public class Main {
             }
         }
 
-        private fun addPassengersToSpot(numberOfPassengers: Int) {
-
-            for (passenger in 0..numberOfPassengers) {
-
-                for (spot in Environment.spots) {
-                    if (passengers[passenger].pickUpSpot == spot) {
-                        spot.updatePassengers(passengers[passenger])
-                    }
-                }
-
-            }
-
-        }
-
-        private val passengers: MutableList<Passenger> = mutableListOf()
 
         private fun generateRandomPassengers(numberOfPassengers: Int) {
 
             for (i in 0..numberOfPassengers) {
                 val passengersSpots = generateTwoRandomSpots()
-                passengers.add(Passenger(getRandomName(5), passengersSpots[0], passengersSpots[1]))
+                Environment.passengers.add(Passenger(getRandomName(5), passengersSpots[0], passengersSpots[1]))
 
             }
 

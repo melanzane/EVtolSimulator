@@ -7,6 +7,8 @@ object Environment {
 
     var spots: MutableList<Spot> = mutableListOf()
 
+    var passengers: MutableList<Passenger> = mutableListOf()
+
     val evtols: MutableList<EVtol> = mutableListOf()
 
     var distanceMatrix: Array<DoubleArray>? = null
