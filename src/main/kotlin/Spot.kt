@@ -23,7 +23,7 @@ class Spot(var name: String, var chargingCapacity: Charger, var coordinates: Map
         return passengers
     }
 
-    fun setEvtol(eVtol: EVtol) {
+    fun setEvtol(eVtol: EVtol?) {
         this.eVtol = eVtol
     }
 

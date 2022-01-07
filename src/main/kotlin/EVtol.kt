@@ -2,9 +2,9 @@ class EVtol(var identifier: Int) {
     private val position = mutableMapOf(Constants.LATITUDE to 0.00, Constants.LONGITUDE to 0.00)
     var passengers = arrayOfNulls<Passenger>(Constants.MAX_PASSENGERS_PER_EVTOL)
     var batteryCapacity: Int = Constants.MAX_BATTERY_CAPACITY
-    var speed: Double = 0.00
-    var altitute: Double = 0.00
-    var range: Double = Constants.MAX_RANGE
+    private var speed: Double = 0.00
+    private var altitute: Double = 0.00
+    private var destinationSpot: Spot? = null
 
     /**
      * The position defines the current location of the evtol.
@@ -40,6 +40,15 @@ class EVtol(var identifier: Int) {
         return batteryCapacity
     }
 
+    /**
+     * Calculates the battery capacity needed for a distance and distracts this value from the current battery capacity
+     */
+    fun updateBatteryCapacity(distanceToFly: Double): Int {
+        var capacityNeededForGivenDistance = (100 / Constants.MAX_BATTERY_CAPACITY) * distanceToFly
+        this.batteryCapacity = this.batteryCapacity - capacityNeededForGivenDistance.toInt()
+        return batteryCapacity
+    }
+
     fun updateSpeed(speed: Double): Double {
 
         try {
@@ -62,4 +71,39 @@ class EVtol(var identifier: Int) {
         this.altitute = altitute
         return altitude
     }
+
+    fun isCharged(): Boolean {
+        return batteryCapacity == Constants.MAX_BATTERY_CAPACITY
+    }
+
+    fun setDestinationSpot(spot: Spot?) {
+        this.destinationSpot = spot
+    }
+
+    fun getDestinationSpot(): Spot? {
+        return this.destinationSpot
+    }
+
+    /**
+     * Sets the speed in km/h
+     */
+    fun setSpeed(speed: Double) {
+        this.speed = speed
+    }
+
+    fun getSpeed(): Double {
+        return this.speed
+    }
+
+    /**
+     * Sets the altitude in meters
+     */
+    fun setAltitude(altitude: Double) {
+        this.altitute = altitute
+    }
+
+    fun getAltitude(): Double {
+        return this.altitute
+    }
+
 }

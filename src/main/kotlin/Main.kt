@@ -1,3 +1,5 @@
+import java.util.*
+import kotlin.concurrent.schedule
 import kotlin.random.Random
 
 public class Main {
@@ -139,38 +141,120 @@ public class Main {
 
             for (spot in Environment.spots) {
                 var index = Environment.spots.indexOf(spot)
-                if (spot.getEvtol() != null) {
+                if (spot.getEvtol() != null && spot.getEvtol()!!.isCharged()) {
                     if (Environment.destinationMatrix?.get(index)?.any { Int -> Int >= 2 } == true) {
-                        flyEvtolToNextSpot(index)
+                        flyEvtolToNextSpot(index, spot, spot.getEvtol()!!)
                     }
                 }
             }
 
-            println(Environment.passengers.size)
             Environment.passengers.removeIf { x -> x.pickUpSpot == null }
-            println(Environment.passengers.size)
 
-            println("   -----|-----")
-            println("*>=====[_]L)")
-            println("      -'-`-")
-            println("")
-            println("        -----|-----")
-            println("     *>=====[_]L)")
-            println("           -'-`-")
+            updateEvtolsInTheAir()
+
+            Timer().schedule(3000) {
+                playSimulation()
+            }
+
         }
 
-        private fun flyEvtolToNextSpot(index: Int) {
-            var spot = Environment.spots.get(index)
-            var eVtol = spot.getEvtol()
+        //TODO: Think about the nutzlast! Less passengers means longer range!
+        private fun updateEvtolsInTheAir() {
+            for (evtol in Environment.evtols) {
+                if (evtol.getDestinationSpot() != null) {
+                    var destinationSpot = evtol.getDestinationSpot()!!
+                    var distanceToDestination = Environment.distanceBetweenLocationsInKm(
+                        evtol.getCurrentPosition().get(Constants.LATITUDE)!!,
+                        evtol.getCurrentPosition().get(Constants.LONGITUDE)!!,
+                        destinationSpot.coordinates.get(Constants.LATITUDE)!!,
+                        destinationSpot.coordinates.get(Constants.LONGITUDE)!!
+                    )
+                    // if the distance left to fly is over 13.00 km, the eVtol keeps the average speed and altitude
+                    if (distanceToDestination >= 13.00) {
+                        evtol.batteryCapacity = evtol.updateBatteryCapacity(distanceToDestination)
+                        evtol.setSpeed(Constants.EVTOL_AVERAGE_SPEED)
+                        evtol.setAltitude(Constants.EVTOL_AVERAGE_ALTITUDE)
+                        var bearing = Environment.getBearing(
+                            evtol.getCurrentPosition().get(Constants.LATITUDE)!!,
+                            evtol.getCurrentPosition().get(Constants.LONGITUDE)!!,
+                            destinationSpot.coordinates.get(Constants.LATITUDE)!!,
+                            destinationSpot.coordinates.get(Constants.LONGITUDE)!!
+                        )
+                        var points = Environment.getPointByDistanceAndBearing(
+                            evtol.getCurrentPosition().get(Constants.LATITUDE)!!,
+                            evtol.getCurrentPosition().get(Constants.LONGITUDE)!!, bearing, 13.0
+                        )
 
-            var possibleDestinationsList =
-                Environment.destinationMatrix!!.get(index).filter { Int -> Int >= 2 }
-            if (possibleDestinationsList.size > 1) {
+                        evtol.updatePosition(points.second, points.first)
+
+                        println(
+                            "Flying Vtol nr. " + evtol.identifier + " to: " + evtol.getDestinationSpot()!!.name + ". The current position is: "
+                                    + points.first + " , " + points.second
+                        )
+                        println("              -----|-----")
+                        println("           *>=====[_]L)")
+                        println("                 -'-`-")
+                        println("")
+
+                    }
+                    // descending flight
+                    else {
+                        evtol.updateBatteryCapacity(distanceToDestination)
+                        evtol.updateSpeed(Constants.EVTOL_LANDING_SPEED)
+                        evtol.updateAltitude(Constants.EVTOL_LANDING_ALTITUDE)
+                        Environment.spots.get(Environment.spots.indexOf(evtol.getDestinationSpot())).setEvtol(evtol)
+                        var bearing = Environment.getBearing(
+                            evtol.getCurrentPosition().get(Constants.LATITUDE)!!,
+                            evtol.getCurrentPosition().get(Constants.LONGITUDE)!!,
+                            destinationSpot.coordinates.get(Constants.LATITUDE)!!,
+                            destinationSpot.coordinates.get(Constants.LONGITUDE)!!
+                        )
+                        var points = Environment.getPointByDistanceAndBearing(
+                            evtol.getCurrentPosition().get(Constants.LATITUDE)!!,
+                            evtol.getCurrentPosition().get(Constants.LONGITUDE)!!, bearing, 13.0
+                        )
+
+                        evtol.updatePosition(points.second, points.first)
+                        println(
+                            "Flying Vtol nr. " + evtol.identifier + " to: " + evtol.getDestinationSpot()!!.name + ". The current position is: "
+                                    + points.first + " , " + points.second + " and the destination will be reached in about five minutes. "
+                        )
+                        println("                         -----|-----")
+                        println("                      *>=====[_]L)")
+                        println("                            -'-`-")
+                        println("")
+                        evtol.setDestinationSpot(null)
+
+                    }
+
+                }
+            }
+        }
+
+        private fun flyEvtolToNextSpot(index: Int, spot: Spot, eVtol: EVtol) {
+
+            var destinationListFromCurrentSpot = Environment.destinationMatrix!!.get(index)
+            var possibleDestinationsSpots = (destinationListFromCurrentSpot.filter { Int -> Int >= 2 }).size
+            if (possibleDestinationsSpots > 1) {
                 //TODO
             } else {
-                //TODO
-
+                var destinationSpotIndex =
+                    destinationListFromCurrentSpot.indexOf(destinationListFromCurrentSpot.first { it >= 2 })
+                eVtol.setDestinationSpot(Environment.spots[destinationSpotIndex])
+                eVtol.setSpeed(Constants.EVTOL_TAKE_OFF_SPEED)
+                eVtol.setAltitude(Constants.EVTOL_TAKE_OFF_ALTITUDE)
+                println(
+                    "Flying Vtol nr. " + eVtol.identifier + " from: " + spot.name + " to: " + eVtol.getDestinationSpot()!!.name + " with " + destinationListFromCurrentSpot.get(
+                        destinationSpotIndex
+                    ) + " passengers."
+                )
+                println("   -----|-----")
+                println("*>=====[_]L)")
+                println("      -'-`-")
+                println("")
             }
+            spot.setEvtol(null)
+
         }
 
 

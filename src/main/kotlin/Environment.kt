@@ -15,7 +15,6 @@ object Environment {
 
     var destinationMatrix: Array<IntArray>? = null
 
-
     /**
      * Takes two [Spot]s as arguments and gets their positions variables.
      * Calls the private [distanceBetweenLocationsInKm] method which calculates the distance
@@ -41,7 +40,7 @@ object Environment {
      *
      * @return distance in kilometers
      */
-    private fun distanceBetweenLocationsInKm(lat1: Double, lon1: Double, lat2: Double, lon2: Double): Double {
+    fun distanceBetweenLocationsInKm(lat1: Double, lon1: Double, lat2: Double, lon2: Double): Double {
         val theta = lon1 - lon2
         var distance =
             Math.sin(deg2rad(lat1)) * Math.sin(deg2rad(lat2)) + Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * Math.cos(
@@ -60,6 +59,46 @@ object Environment {
 
     private fun rad2deg(rad: Double): Double {
         return rad * 180.0 / Math.PI
+    }
+
+    fun getBearing(startLat: Double, startLng: Double, endLat: Double, endLng: Double): Double {
+        val latitude1 = Math.toRadians(startLat)
+        val latitude2 = Math.toRadians(endLat)
+        val longDiff = Math.toRadians(endLng - startLng)
+        val y = Math.sin(longDiff) * Math.cos(latitude2)
+        val x =
+            Math.cos(latitude1) * Math.sin(latitude2) - Math.sin(latitude1) * Math.cos(latitude2) * Math.cos(longDiff)
+        return (Math.toDegrees(Math.atan2(y, x)) + 360) % 360
+    }
+
+    fun getPointByDistanceAndBearing(
+        lat: Double,
+        lon: Double,
+        bearing: Double,
+        distanceKm: Double
+    ): Pair<Double, Double> {
+        val earthRadius = 6378.1
+
+        val bearingR = Math.toRadians(bearing)
+
+        val latR = Math.toRadians(lat)
+        val lonR = Math.toRadians(lon)
+
+        val distanceToRadius = distanceKm / earthRadius
+
+        val newLatR = Math.asin(
+            Math.sin(latR) * Math.cos(distanceToRadius) +
+                    Math.cos(latR) * Math.sin(distanceToRadius) * Math.cos(bearingR)
+        )
+        val newLonR = lonR + Math.atan2(
+            Math.sin(bearingR) * Math.sin(distanceToRadius) * Math.cos(latR),
+            Math.cos(distanceToRadius) - Math.sin(latR) * Math.sin(newLatR)
+        )
+
+        val latNew = Math.toDegrees(newLatR)
+        val lonNew = Math.toDegrees(newLonR)
+
+        return Pair(latNew, lonNew)
     }
 
     // TODO
@@ -168,10 +207,10 @@ object Environment {
             destinationsMap = dijkstra(fromPostion, distanceMatrix!!, spots.size)
         }
 
-        println("Passenger travels from: " + passenger.pickUpSpot!!.name + " to: " + passenger.destinationSpot.name + " through: ")
-        for ((key, value) in destinationsMap) {
-            println("${key.name} = ${value.name}")
-        }
+        // println("Passenger travels from: " + passenger.pickUpSpot!!.name + " to: " + passenger.destinationSpot.name + " through: ")
+        // for ((key, value) in destinationsMap) {
+        //    println("${key.name} = ${value.name}")
+        // }
         return destinationsMap
     }
 
@@ -195,7 +234,6 @@ object Environment {
             }
         }
 
-        println("d: ${distances.contentToString()}")
         return destinationsMap
     }
 
