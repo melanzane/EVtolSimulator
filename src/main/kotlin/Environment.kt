@@ -262,4 +262,17 @@ object Environment {
             destinationSpot
         } else destinationMap.get(destinationSpot)?.let { getNextSpotForPassenger(destinationMap, pickUpSpot, it) }
     }
+
+    fun adjustDestinationMatrixAfterAscending(startSpotIndex: Int, destinationSpotIndex: Int): Int {
+        var passengersWithSameDestination = destinationMatrix!!.get(startSpotIndex)[destinationSpotIndex]
+        if (passengersWithSameDestination <= Constants.MAX_PASSENGERS_PER_EVTOL) {
+            destinationMatrix!!.get(startSpotIndex)[destinationSpotIndex] = 0
+            return passengersWithSameDestination
+        } else {
+            destinationMatrix!!.get(startSpotIndex)[destinationSpotIndex] =
+                destinationMatrix!!.get(startSpotIndex)[destinationSpotIndex] - passengersWithSameDestination
+            return Constants.MAX_PASSENGERS_PER_EVTOL
+        }
+
+    }
 }

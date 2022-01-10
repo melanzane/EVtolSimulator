@@ -9,7 +9,10 @@ class Spot(var name: String, var chargingCapacity: Charger, var coordinates: Map
     var passengers: MutableList<Passenger> = mutableListOf()
 
     private var eVtol: EVtol? = null
-    
+
+    //TODO
+    var eVtols: MutableList<EVtol> = mutableListOf()
+
     val position = coordinates
 
     /**

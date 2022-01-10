@@ -107,7 +107,7 @@ public class Main {
             generateRandomPassengers(numberOfPassengers)
 
             // add eVtols to random spots
-            updateeVtolsWithSpots(arrayOf(eVtol1, eVtol2, eVtol3, eVtol4, eVtol5))
+            updateVolsWithSpots(arrayOf(eVtol1, eVtol2, eVtol3, eVtol4, eVtol5))
 
             // play the simulation by picking up the passengers at the spots and flying them
             // to their destinations
@@ -261,27 +261,34 @@ private fun flyEvtolToNextSpot(index: Int, spot: Spot, eVtol: EVtol) {
                 var possibleDestinationsSpotsOfNextDestinaion =
                     (destinationListFromFromPossibleDestination.filter { Int -> Int >= 2 }).size
                 if (possibleDestinationsSpotsOfNextDestinaion >= 0) {
-                    startAscendingFlight(spotIndex, eVtol, spot, destinationListFromCurrentSpot)
+                    var passengersOnBoard = Environment.adjustDestinationMatrixAfterAscending(index, spotIndex)
+                    startAscendingFlight(spotIndex, eVtol, spot, passengersOnBoard)
                 }
             }
         }
     } else {
         var destinationSpotIndex =
             destinationListFromCurrentSpot.indexOf(destinationListFromCurrentSpot.first { it >= 2 })
-        startAscendingFlight(destinationSpotIndex, eVtol, spot, destinationListFromCurrentSpot)
+        var passengersOnBoard = Environment.adjustDestinationMatrixAfterAscending(index, destinationSpotIndex)
+        startAscendingFlight(destinationSpotIndex, eVtol, spot, passengersOnBoard)
     }
     spot.setEvtol(null)
 
 }
 
-private fun startAscendingFlight(spotIndex: Int, eVtol: EVtol, spot: Spot, destinationListFromCurrentSpot: IntArray) {
+private fun startAscendingFlight(
+    spotIndex: Int,
+    eVtol: EVtol,
+    spot: Spot,
+    numberOfPassenger: Int
+) {
     eVtol.setDestinationSpot(Environment.spots[spotIndex])
     eVtol.setSpeed(Constants.EVTOL_TAKE_OFF_SPEED)
     eVtol.setAltitude(Constants.EVTOL_TAKE_OFF_ALTITUDE)
     println(
-        "Flying Vtol nr. " + eVtol.identifier + " from: " + spot.name + " to: " + eVtol.getDestinationSpot()!!.name + " with " + destinationListFromCurrentSpot.get(
-            spotIndex
-        ) + " passengers."
+        "Flying Vtol nr. " + eVtol.identifier + " from: " + spot.name + " to: " + eVtol.getDestinationSpot()!!.name + " with " +
+
+                numberOfPassenger + " passengers."
     )
     println("   -----|-----")
     println("*>=====[_]L)")
@@ -290,7 +297,7 @@ private fun startAscendingFlight(spotIndex: Int, eVtol: EVtol, spot: Spot, desti
 }
 
 
-private fun updateeVtolsWithSpots(evtols: Array<EVtol>) {
+private fun updateVolsWithSpots(evtols: Array<EVtol>) {
     for (evtol in evtols) {
         val spot = Random.nextInt(Environment.spots.size)
         Environment.spots[spot].position.get(Constants.LONGITUDE)
