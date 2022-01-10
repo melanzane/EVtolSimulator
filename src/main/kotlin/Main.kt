@@ -100,7 +100,7 @@ public class Main {
 
 
             //Add eVtols to the environment
-            Environment.addEVtols(arrayOf(eVtol1, eVtol2, eVtol3))
+            Environment.addEVtols(arrayOf(eVtol1, eVtol2, eVtol3, eVtol4, eVtol5))
 
             // generate random passengers and add them to spot
             val numberOfPassengers = 60
@@ -147,9 +147,10 @@ public class Main {
             // if there are more than two passengers and a charged evtols, the evtols is send to fly
             for (spot in Environment.spots) {
                 var index = Environment.spots.indexOf(spot)
-                if (spot.getEvtol() != null && spot.getEvtol()!!.isCharged()) {
+                val chargedEvtolsAtSpot = spot.eVtols.filter { it.isCharged() }
+                if (!chargedEvtolsAtSpot.isEmpty()) {
                     if (Environment.destinationMatrix?.get(index)?.any { Int -> Int >= 2 } == true) {
-                        flyEvtolToNextSpot(index, spot, spot.getEvtol()!!)
+                        flyEvtolToNextSpot(index, spot, chargedEvtolsAtSpot.first())
                     }
                 }
             }
@@ -167,9 +168,12 @@ public class Main {
 
         private fun updateEvtolsOnGround() {
             for (spot in Environment.spots) {
-                if (spot.getEvtol() != null && !spot.getEvtol()!!.isCharged()) {
-                    spot.chargeEVtol(spot.getEvtol()!!)
-                    println("Charging evtol nr. " + spot.getEvtol()!!.identifier + " at the spot " + spot.name + ". The battery capacity is at: " + spot.getEvtol()!!.batteryCapacity + " percent.")
+                val unchargedEvtolsAtSpot = spot.eVtols.filter { !it.isCharged() }
+                if (!unchargedEvtolsAtSpot.isEmpty()) {
+                    for (unchargedEvtol in unchargedEvtolsAtSpot) {
+                        spot.chargeEVtol(unchargedEvtol)
+                        println("Charging evtol nr. " + unchargedEvtol.identifier + " at the spot " + spot.name + ". The battery capacity is at: " + unchargedEvtol.batteryCapacity + " percent.")
+                    }
                 }
             }
         }
@@ -220,7 +224,7 @@ private fun updateEvtolsInTheAir() {
                 evtol.updateBatteryCapacity(distanceToDestination)
                 evtol.updateSpeed(Constants.EVTOL_LANDING_SPEED)
                 evtol.updateAltitude(Constants.EVTOL_LANDING_ALTITUDE)
-                Environment.spots.get(Environment.spots.indexOf(evtol.getDestinationSpot())).setEvtol(evtol)
+                Environment.spots.get(Environment.spots.indexOf(evtol.getDestinationSpot())).addEvtolsToSpot(evtol)
                 var bearing = Environment.getBearing(
                     evtol.getCurrentPosition().get(Constants.LATITUDE)!!,
                     evtol.getCurrentPosition().get(Constants.LONGITUDE)!!,
@@ -272,7 +276,7 @@ private fun flyEvtolToNextSpot(index: Int, spot: Spot, eVtol: EVtol) {
         var passengersOnBoard = Environment.adjustDestinationMatrixAfterAscending(index, destinationSpotIndex)
         startAscendingFlight(destinationSpotIndex, eVtol, spot, passengersOnBoard)
     }
-    spot.setEvtol(null)
+    spot.getEvtols().remove(eVtol)
 
 }
 
@@ -305,7 +309,7 @@ private fun updateVolsWithSpots(evtols: Array<EVtol>) {
                 Environment.spots[spot].position.get(Constants.LATITUDE)
                     ?.let { it1 -> evtol.updatePosition(it, it1) }
             }
-        Environment.spots[spot].setEvtol(evtol)
+        Environment.spots[spot].addEvtolsToSpot(evtol)
     }
 }
 

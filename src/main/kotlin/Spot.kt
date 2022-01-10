@@ -8,7 +8,7 @@
 class Spot(var name: String, var chargingCapacity: Charger, var coordinates: Map<String, Double>) {
     var passengers: MutableList<Passenger> = mutableListOf()
 
-    private var eVtol: EVtol? = null
+    //  private var eVtol: EVtol? = null
 
     //TODO
     var eVtols: MutableList<EVtol> = mutableListOf()
@@ -27,12 +27,21 @@ class Spot(var name: String, var chargingCapacity: Charger, var coordinates: Map
         return passengers
     }
 
-    fun setEvtol(eVtol: EVtol?) {
-        this.eVtol = eVtol
+    /**fun setEvtol(eVtol: EVtol?) {
+    this.eVtol = eVtol
     }
 
     fun getEvtol(): EVtol? {
-        return this.eVtol
+    return this.eVtol
+    } */
+
+    fun addEvtolsToSpot(evtol: EVtol): MutableList<EVtol> {
+        eVtols.add(evtol)
+        return eVtols
+    }
+
+    fun getEvtols(): MutableList<EVtol> {
+        return eVtols
     }
 
     fun chargeEVtol(evtol: EVtol) {
