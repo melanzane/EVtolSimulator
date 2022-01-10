@@ -172,7 +172,7 @@ public class Main {
                 if (!unchargedEvtolsAtSpot.isEmpty()) {
                     for (unchargedEvtol in unchargedEvtolsAtSpot) {
                         spot.chargeEVtol(unchargedEvtol)
-                        println("Charging evtol nr. " + unchargedEvtol.identifier + " at the spot " + spot.name + ". The battery capacity is at: " + unchargedEvtol.batteryCapacity + " percent.")
+                        println("Charging evtol nr. " + unchargedEvtol.identifier + " at the spot " + spot.name + ". The battery capacity is at: " + unchargedEvtol.getBatteryCapacity() + " percent.")
                     }
                 }
             }
@@ -193,7 +193,7 @@ private fun updateEvtolsInTheAir() {
             )
             // if the distance left to fly is over 13.00 km, the eVtol keeps the average speed and altitude
             if (distanceToDestination >= 13.00) {
-                evtol.batteryCapacity = evtol.updateBatteryCapacity(distanceToDestination)
+                evtol.updateBatteryCapacity(distanceToDestination)
                 evtol.setSpeed(Constants.EVTOL_AVERAGE_SPEED)
                 evtol.setAltitude(Constants.EVTOL_AVERAGE_ALTITUDE)
                 var bearing = Environment.getBearing(
@@ -238,7 +238,7 @@ private fun updateEvtolsInTheAir() {
 
                 evtol.updatePosition(points.second, points.first)
                 println(
-                    "Flying Vtol nr. " + evtol.identifier + " to: " + evtol.getDestinationSpot()!!.name + ". The current position is: "
+                    "Descending Vtol nr. " + evtol.identifier + " to: " + evtol.getDestinationSpot()!!.name + ". The current position is: "
                             + points.first + " , " + points.second + " and the destination will be reached in about five minutes. "
                 )
                 println("                         -----|-----")
@@ -290,7 +290,7 @@ private fun startAscendingFlight(
     eVtol.setSpeed(Constants.EVTOL_TAKE_OFF_SPEED)
     eVtol.setAltitude(Constants.EVTOL_TAKE_OFF_ALTITUDE)
     println(
-        "Flying Vtol nr. " + eVtol.identifier + " from: " + spot.name + " to: " + eVtol.getDestinationSpot()!!.name + " with " +
+        "Ascending Vtol nr. " + eVtol.identifier + " from: " + spot.name + " to: " + eVtol.getDestinationSpot()!!.name + " with " +
 
                 numberOfPassenger + " passengers."
     )

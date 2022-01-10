@@ -8,9 +8,6 @@
 class Spot(var name: String, var chargingCapacity: Charger, var coordinates: Map<String, Double>) {
     var passengers: MutableList<Passenger> = mutableListOf()
 
-    //  private var eVtol: EVtol? = null
-
-    //TODO
     var eVtols: MutableList<EVtol> = mutableListOf()
 
     val position = coordinates
@@ -27,23 +24,31 @@ class Spot(var name: String, var chargingCapacity: Charger, var coordinates: Map
         return passengers
     }
 
-    /**fun setEvtol(eVtol: EVtol?) {
-    this.eVtol = eVtol
-    }
-
-    fun getEvtol(): EVtol? {
-    return this.eVtol
-    } */
-
+    /**
+     *
+     * Adds a [EVtol] to the collection eVtols at the spot.
+     * @return the eVtols collection.
+     *
+     */
     fun addEvtolsToSpot(evtol: EVtol): MutableList<EVtol> {
         eVtols.add(evtol)
         return eVtols
     }
 
+    /**
+     *
+     * @returns the eVtols collection.
+     *
+     */
     fun getEvtols(): MutableList<EVtol> {
         return eVtols
     }
 
+    /**
+     *
+     * Adjusts the battery capacity of an [EVtol] based on the charging capacity of the current spot.
+     *
+     */
     fun chargeEVtol(evtol: EVtol) {
         if (chargingCapacity.equals(Charger.SUPERCHARGER)) {
             evtol.charge(Constants.EVTOL_CHARGING_UNIT_SUPERCHARGER)
