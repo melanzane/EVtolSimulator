@@ -9,6 +9,7 @@ class Spot(var name: String, var chargingCapacity: Charger, var coordinates: Map
     var passengers: MutableList<Passenger> = mutableListOf()
 
     private var eVtol: EVtol? = null
+    
     val position = coordinates
 
     /**
@@ -29,6 +30,14 @@ class Spot(var name: String, var chargingCapacity: Charger, var coordinates: Map
 
     fun getEvtol(): EVtol? {
         return this.eVtol
+    }
+
+    fun chargeEVtol(evtol: EVtol) {
+        if (chargingCapacity.equals(Charger.SUPERCHARGER)) {
+            evtol.charge(Constants.EVTOL_CHARGING_UNIT_SUPERCHARGER)
+        } else if (chargingCapacity.equals((Charger.NORMALCHARGER))) {
+            evtol.charge(Constants.EVTOL_CHARGING_UNIT_NORMALCHARGER)
+        }
     }
 
 }

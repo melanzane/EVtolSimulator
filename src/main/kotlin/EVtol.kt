@@ -35,17 +35,21 @@ class EVtol(var identifier: Int) {
         return this.passengers
     }
 
-    fun updateBatteryCapacity(capacity: Int): Int {
-        this.batteryCapacity = capacity
-        return batteryCapacity
-    }
-
     /**
      * Calculates the battery capacity needed for a distance and distracts this value from the current battery capacity
      */
     fun updateBatteryCapacity(distanceToFly: Double): Int {
         var capacityNeededForGivenDistance = (100 / Constants.MAX_BATTERY_CAPACITY) * distanceToFly
         this.batteryCapacity = this.batteryCapacity - capacityNeededForGivenDistance.toInt()
+        return batteryCapacity
+    }
+
+    fun charge(chargedCapatiy: Int): Int {
+        if ((this.batteryCapacity + chargedCapatiy) > Constants.MAX_BATTERY_CAPACITY) {
+            this.batteryCapacity = Constants.MAX_BATTERY_CAPACITY
+        } else {
+            this.batteryCapacity = this.batteryCapacity + chargedCapatiy
+        }
         return batteryCapacity
     }
 

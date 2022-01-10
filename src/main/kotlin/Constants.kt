@@ -17,6 +17,8 @@ object Constants {
     const val EVTOL_TAKE_OFF_ALTITUDE = 100.00
     const val EVTOL_AVERAGE_ALTITUDE = 800.00
     const val EVTOL_LANDING_ALTITUDE = 800.00
+    const val EVTOL_CHARGING_UNIT_SUPERCHARGER = 30
+    const val EVTOL_CHARGING_UNIT_NORMALCHARGER = 10
 
 
 }
