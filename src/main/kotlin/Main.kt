@@ -1,6 +1,9 @@
 import java.util.*
+import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
 import kotlin.concurrent.schedule
 import kotlin.random.Random
+
 
 public class Main {
 
@@ -103,7 +106,7 @@ public class Main {
             Environment.addEVtols(arrayOf(eVtol1, eVtol2, eVtol3, eVtol4, eVtol5))
 
             // generate random passengers and add them to spot
-            val numberOfPassengers = 60
+            val numberOfPassengers = 120
             generateRandomPassengers(numberOfPassengers)
 
             // add eVtols to random spots
@@ -111,8 +114,9 @@ public class Main {
 
             // play the simulation by picking up the passengers at the spots and flying them
             // to their destinations
-            playSimulation()
-
+            Executors.newSingleThreadScheduledExecutor().schedule({
+                playSimulation()
+            }, 4, TimeUnit.SECONDS)
         }
 
         private fun playSimulation() {
@@ -160,9 +164,10 @@ public class Main {
             updateEvtolsInTheAir()
 
             updateEvtolsOnGround()
-            Timer().schedule(3000) {
+            Timer().schedule(10000) {
                 playSimulation()
             }
+
 
         }
 
@@ -267,6 +272,7 @@ private fun flyEvtolToNextSpot(index: Int, spot: Spot, eVtol: EVtol) {
                 if (possibleDestinationsSpotsOfNextDestinaion >= 0) {
                     var passengersOnBoard = Environment.adjustDestinationMatrixAfterAscending(index, spotIndex)
                     startAscendingFlight(spotIndex, eVtol, spot, passengersOnBoard)
+                    break
                 }
             }
         }
@@ -276,7 +282,7 @@ private fun flyEvtolToNextSpot(index: Int, spot: Spot, eVtol: EVtol) {
         var passengersOnBoard = Environment.adjustDestinationMatrixAfterAscending(index, destinationSpotIndex)
         startAscendingFlight(destinationSpotIndex, eVtol, spot, passengersOnBoard)
     }
-    spot.getEvtols().remove(eVtol)
+
 
 }
 
